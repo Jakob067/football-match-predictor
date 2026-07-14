@@ -87,7 +87,13 @@ Optionale Zusatz-CSVs:
 python main.py --source api --api-token DEIN_TOKEN --competition PL --season 2024 --history-seasons 5
 ```
 
-Der Token kann alternativ als Umgebungsvariable `FOOTBALL_DATA_API_TOKEN` gesetzt werden. Mit `--history-seasons` lassen sich mehrere Saisons für ein robusteres Training kombinieren.
+Für das Live-Portal trägst du den Token lokal in `.env` ein (die Datei ist von Git ausgeschlossen):
+
+```env
+FOOTBALL_DATA_API_TOKEN=dein_token_von_football-data.org
+```
+
+Eine sichere Vorlage liegt in `.env.example`. Mit `--history-seasons` lassen sich mehrere Saisons für ein robusteres Training kombinieren.
 
 ---
 
