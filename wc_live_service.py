@@ -14,6 +14,14 @@ STANDINGS_URL = "https://api.football-data.org/v4/competitions/WC/standings?stag
 MATCHES_URL = "https://api.football-data.org/v4/competitions/WC/matches?status=SCHEDULED"
 FINISHED_URL = "https://api.football-data.org/v4/competitions/WC/matches?status=FINISHED"
 _cache: tuple[float, list[dict[str, Any]]] | None = None
+KNOCKOUT_STAGES = {
+    "LAST_32",
+    "LAST_16",
+    "QUARTER_FINALS",
+    "SEMI_FINALS",
+    "THIRD_PLACE",
+    "FINAL",
+}
 
 
 def _token() -> str:
@@ -53,6 +61,11 @@ def _local_date(value: str) -> tuple[str, str]:
     return parsed.strftime("%a, %d.%m."), parsed.strftime("%H:%M")
 
 
+def _must_decide(match: dict[str, Any]) -> bool:
+    """Return whether this World Cup match must produce a winner."""
+    return str(match.get("stage") or "").upper() in KNOCKOUT_STAGES
+
+
 def next_world_cup_predictions(ttl_seconds: int = 900) -> list[dict[str, Any]]:
     global _cache
     if _cache and time.monotonic() - _cache[0] < ttl_seconds:
@@ -81,10 +94,15 @@ def next_world_cup_predictions(ttl_seconds: int = 900) -> list[dict[str, Any]]:
         away_rating = ratings.get(away_id, 1700.0) + table_adjustment.get(away_id, 0)
         home_rating += max(-24, min(24, (home_form - 8) * 4))
         away_rating += max(-24, min(24, (away_form - 8) * 4))
-        forecast = predict(Team(home.get("name") or "Team A", round(home_rating)),
-                           Team(away.get("name") or "Team B", round(away_rating)), neutral=True)
+        forecast = predict(
+            Team(home.get("name") or "Team A", round(home_rating)),
+            Team(away.get("name") or "Team B", round(away_rating)),
+            neutral=True,
+            must_decide=_must_decide(match),
+        )
         day, kickoff = _local_date(utc_date)
         rows.append({**forecast, "id": match.get("id"), "day": day, "kickoff": kickoff,
+            "stage": match.get("stage"),
             "home_name": home.get("shortName") or home.get("name"),
             "away_name": away.get("shortName") or away.get("name"),
             "home_crest": home.get("crest"), "away_crest": away.get("crest"),

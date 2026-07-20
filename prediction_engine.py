@@ -53,7 +53,12 @@ def teams_for(code: str) -> list[Team]:
     return sorted(COMPETITIONS.get(code, COMPETITIONS["PL"])[1], key=lambda team: team.name)
 
 
-def predict(home: Team, away: Team, neutral: bool = False) -> dict[str, object]:
+def predict(
+    home: Team,
+    away: Team,
+    neutral: bool = False,
+    must_decide: bool = False,
+) -> dict[str, object]:
     difference = home.rating + (0 if neutral else 65) - away.rating
     home_xg = max(.35, min(3.4, 1.34 * 10 ** (difference / 800)))
     away_xg = max(.30, min(3.1, 1.12 * 10 ** (-difference / 800)))
@@ -65,10 +70,33 @@ def predict(home: Team, away: Team, neutral: bool = False) -> dict[str, object]:
                 sum(matrix[i][j] for i in range(11) for j in range(i + 1, 11))]
     total = sum(outcomes)
     probs = [value / total for value in outcomes]
-    score = max(((i, j) for i in range(7) for j in range(7)), key=lambda s: matrix[s[0]][s[1]])
-    labels = [f"{home.name} win", "Draw", f"{away.name} win"]
-    best = max(range(3), key=probs.__getitem__)
-    confidence = "High" if probs[best] >= .60 else "Medium" if probs[best] >= .45 else "Low"
+    score_candidates = (
+        (i, j)
+        for i in range(7)
+        for j in range(7)
+        if not must_decide or i != j
+    )
+    score = max(score_candidates, key=lambda s: matrix[s[0]][s[1]])
+
+    if must_decide:
+        # A knockout match needs a winner. Split the regulation-time draw chance
+        # between both teams according to their underlying win strength.
+        decisive_total = probs[0] + probs[2]
+        home_advance = probs[0] / decisive_total
+        away_advance = probs[2] / decisive_total
+        best = 0 if home_advance >= away_advance else 2
+        labels = [f"{home.name} setzt sich durch", "", f"{away.name} setzt sich durch"]
+        confidence_value = max(home_advance, away_advance)
+    else:
+        home_advance, away_advance = probs[0], probs[2]
+        labels = [f"{home.name} gewinnt", "Unentschieden", f"{away.name} gewinnt"]
+        best = max(range(3), key=probs.__getitem__)
+        confidence_value = probs[best]
+
+    confidence = "Hoch" if confidence_value >= .60 else "Mittel" if confidence_value >= .45 else "Offen"
     return {"home":round(probs[0]*100,1),"draw":round(probs[1]*100,1),"away":round(probs[2]*100,1),
             "prediction":labels[best],"score":f"{score[0]}–{score[1]}","home_xg":round(home_xg,2),
-            "away_xg":round(away_xg,2),"confidence":confidence}
+            "away_xg":round(away_xg,2),"confidence":confidence,
+            "must_decide":must_decide,
+            "home_advance":round(home_advance*100, 1),
+            "away_advance":round(away_advance*100, 1)}
