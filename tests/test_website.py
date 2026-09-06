@@ -16,7 +16,7 @@ class WebsiteTests(unittest.TestCase):
             "away_team":"Brazil", "neutral":"on", "home_form":"15", "away_form":"3",
             "home_missing":"0", "away_missing":"2", "action":"predict"})
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Argentina win", response.data)
+        self.assertIn(b"Argentina gewinnt", response.data)
         self.assertIn(b"data-width", response.data)
 
     def test_invalid_numbers_are_safe(self):

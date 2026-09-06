@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17221c">
+  <meta name="description" content="Dein Blick auf den nächsten Spieltag: Fußballprognosen, Spielplan, Teamform und Torschützen bei Matchday.">
+  <title>{{ 'Spielplan' if view == 'matches' else 'Prognosen' if view == 'predictions' else 'Vor dem Anpfiff' }} — Matchday</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/barlow-condensed-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='matchday.css') }}">
+  <script src="{{ url_for('static', filename='matchday.js') }}" defer></script>
+</head>
+<body class="view-{{view}}">
+  <a class="skip-link" href="#content">Zum Inhalt</a>
+  <header class="site-header">
+    <div class="masthead page-width">
+      <a class="brand" href="{{url_for('index', view='home', competition=competition)}}" aria-label="Matchday Startseite"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>MATCHDAY<span class="brand-period">.</span></a>
+      <span class="brand-note">DAS SPIEL HINTER DEM SPIEL.</span>
+      <span class="edition">FUSSBALL / ANALYSE / FORM</span>
+    </div>
+    <div class="navigation-wrap"><div class="navigation page-width">
+      <nav class="links" aria-label="Hauptnavigation">
+        {% for key, label, number in [('home', 'Übersicht', '01'), ('matches', 'Nächste Spiele', '02'), ('predictions', 'Prognosen', '03')] %}
+        <a href="{{url_for('index', view=key, competition=competition)}}" class="{{'active' if view==key}}" {% if view==key %}aria-current="page"{% endif %}><span class="nav-number">{{number}}</span>{{label}}</a>
+        {% endfor %}
+      </nav>
+      <span class="data-status {{'status-error' if error}}"><i aria-hidden="true"></i>{{'Daten nicht verfügbar' if error else 'Spielplan geladen' if view != 'home' else 'Vor dem Anpfiff'}}</span>
+    </div></div>
+  </header>
+  <main id="content" class="page-width main-content">
+  {% if view == 'home' %}
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="square" aria-hidden="true"></span> FÜR ALLE, DIE GENAUER HINSEHEN.</div>
+        <h1 id="hero-title">VOR DEM<br><span>ANPFIFF.</span><span class="headline-star" aria-hidden="true">↗</span></h1>
+        <p class="hero-description">Bauchgefühl trifft Spielanalyse. Die nächsten Duelle, die aktuelle Form und die Zahlen, die den Unterschied machen.</p>
+        <form class="hero-form" action="{{url_for('index')}}" method="get">
+          <input type="hidden" name="view" value="matches">
+          <label for="home-competition">Dein Wettbewerb</label>
+          <div class="hero-controls"><select id="home-competition" name="competition">{% for code,label in competitions %}<option value="{{code}}" {% if code==competition %}selected{% endif %}>{{label}}</option>{% endfor %}</select><button class="button button-accent" type="submit">Nächste Spiele ansehen <span aria-hidden="true">↗</span></button></div>
+        </form>
+        <a class="text-link" href="{{url_for('index', view='predictions', competition=competition)}}">Direkt zu den Prognosen <span aria-hidden="true">→</span></a>
+      </div>
+      <figure class="hero-photo">
+        <img src="{{url_for('static', filename='images/pitch.jpg')}}" alt="Ein beleuchtetes Fußballfeld aus der Vogelperspektive." width="1100" height="1300" fetchpriority="high">
+        <div class="photo-topline" aria-hidden="true"><span>90 MINUTEN.</span><span>ALLES OFFEN.</span></div>
+        <figcaption><span>JEDES SPIEL<br>HAT SEINE GESCHICHTE.</span><span class="photo-cross" aria-hidden="true">+</span></figcaption>
+        <a class="photo-credit" href="https://unsplash.com/photos/K5ChxJaheKI" target="_blank" rel="noopener noreferrer">Foto: Izuddin Helmi Adnan / Unsplash</a>
+      </figure>
+    </section>
+    <section class="analysis-primer" aria-labelledby="primer-title">
+      <div class="primer-heading"><span class="eyebrow">UNSER BLICK AUFS SPIEL</span><h2 id="primer-title">MEHR ALS<br>EIN TIPP.</h2></div>
+      <div class="primer-item"><span class="primer-index">01 / AUSGANG</span><strong>1 <span>×</span> 2</strong><p>Heimsieg, Remis, Auswärtssieg.<br>Drei Möglichkeiten. Klare Wahrscheinlichkeiten.</p></div>
+      <div class="primer-item"><span class="primer-index">02 / TORGEFAHR</span><strong>xG<span>.</span></strong><p>Wie viele Tore sind zu erwarten?<br>Die Torverteilung macht Chancen vergleichbar.</p></div>
+      <div class="primer-item"><span class="primer-index">03 / TEAMSTÄRKE</span><strong>ELO<span>.</span></strong><p>Was die letzten Spiele verraten.<br>Teamstärke, Form und Heimvorteil im Zusammenspiel.</p></div>
+    </section>
+  {% else %}
+    <header class="page-heading"><div><span class="eyebrow"><span class="square" aria-hidden="true"></span>{{'DER BALL ROLLT WEITER.' if view=='matches' else 'EIN BLICK NACH VORN.'}}</span><h1>{{'DEIN SPIELTAG.' if view=='matches' else 'DIE PROGNOSEN.'}}</h1></div><p>{{'Alle kommenden Duelle.\nLokale Anstoßzeiten auf einen Blick.' if view=='matches' else 'Teamstärke, Form und Torwahrscheinlichkeit.\nDie Zahlen vor dem Spiel.'}}</p></header>
+    <div class="matchday-layout">
+      <aside class="competition-rail" aria-label="Wettbewerbe">
+        <div class="rail-title">WETTBEWERBE <span>{{competitions|length}}</span></div>
+        <nav>{% for code,label in competitions %}<a href="{{url_for('index', view=view, competition=code)}}" class="competition-link {{'selected' if code==competition}}" {% if code==competition %}aria-current="true"{% endif %}><span class="competition-code">{{code}}</span><span>{{label}}</span><span class="rail-arrow" aria-hidden="true">↗</span></a>{% endfor %}</nav>
+        <div class="rail-note"><span class="brand-mark small" aria-hidden="true"><i></i><i></i><i></i></span><p>Der Fußball bleibt<br>unberechenbar.<br><b>Gut so.</b></p></div>
+      </aside>
+      <section class="fixtures-panel" aria-labelledby="fixtures-heading">
+        <form class="toolbar" method="get"><input type="hidden" name="view" value="{{view}}"><div class="competition-select"><label for="competition">Wettbewerb wählen</label><select id="competition" name="competition" data-auto-submit>{% for code,label in competitions %}<option value="{{code}}" {% if code==competition %}selected{% endif %}>{{label}}</option>{% endfor %}</select></div><h2 id="fixtures-heading">{{competition_name}}<span class="fixture-count">{{matches|length}} Spiele</span></h2><button type="submit" class="refresh" aria-label="Spielplan aktualisieren"><span aria-hidden="true">↻</span><span>Aktualisieren</span></button></form>
+        {% if error %}
+        <div class="empty-state notice" role="status"><span class="empty-number" aria-hidden="true">– : –</span><span class="eyebrow">KURZE SPIELPAUSE</span><h3>Die Daten lassen auf sich warten.</h3><p>{{'Die Verbindung zur Fußball-Datenquelle ist noch nicht eingerichtet.' if error=='missing' else 'Der Spielplan kann gerade nicht geladen werden. Bitte versuche es später noch einmal oder wähle einen anderen Wettbewerb.'}}</p>{% if error=='missing' %}<details class="setup-help"><summary>Hinweis zur Einrichtung</summary><p>Trage <code>FOOTBALL_DATA_API_TOKEN</code> in die lokale <code>.env</code>-Datei ein und starte das Portal neu.</p></details>{% endif %}<a class="button button-dark" href="{{url_for('index', view=view, competition=competition)}}">Erneut versuchen <span aria-hidden="true">↻</span></a></div>
+        {% elif matches %}
+        <div class="matches">
+        {% for m in matches %}
+          {% if loop.changed(m.day) %}<div class="match-date"><span>{{m.day}}</span><span>ANSTOSS · LOKALE ZEIT</span></div>{% endif %}
+          <article class="match {{'prediction-match' if view=='predictions'}}" aria-label="{{m.home_name}} gegen {{m.away_name}}">
+            <div class="match-summary">
+              <div class="kickoff"><strong>{{m.kickoff}}</strong><span>ANSTOSS</span></div>
+              <div class="teams">
+                <div class="team"><span class="crest">{% if m.home_crest %}<img src="{{m.home_crest}}" alt="" width="36" height="36" loading="lazy">{% else %}<span class="crest-fallback" aria-hidden="true">{{m.home_name[:2]|upper}}</span>{% endif %}</span><span>{{m.home_name}}</span><span class="team-side">H</span></div>
+                <div class="team"><span class="crest">{% if m.away_crest %}<img src="{{m.away_crest}}" alt="" width="36" height="36" loading="lazy">{% else %}<span class="crest-fallback away" aria-hidden="true">{{m.away_name[:2]|upper}}</span>{% endif %}</span><span>{{m.away_name}}</span><span class="team-side">A</span></div>
+              </div>
+              {% if view=='predictions' %}<div class="score-prediction"><span>MODELL-TIPP</span><strong>{{m.score}}</strong><small>Ergebnisprognose</small></div>{% else %}<div class="scheduled-label"><span class="square" aria-hidden="true"></span> ANGESETZT</div>{% endif %}
+            </div>
+            {% if view=='predictions' %}
+            <div class="quick-probabilities" aria-label="Wahrscheinlichkeiten"><div><span>1 · HEIM</span><b>{{m.home}}%</b></div><div><span>X · REMIS</span><b>{{m.draw}}%</b></div><div><span>2 · AUSWÄRTS</span><b>{{m.away}}%</b></div></div>
+            <div class="probability-strip" aria-hidden="true"><span style="flex:{{m.home}}"></span><span style="flex:{{m.draw}}"></span><span style="flex:{{m.away}}"></span></div>
+            {% endif %}
+            {% if details_enabled or view=='predictions' %}
+            <details class="match-details" id="analysis-{{loop.index}}" {% if view=='predictions' %}open{% endif %} data-match-details>
+              <summary class="details-toggle"><span class="details-label"><span class="when-closed">Genaue Analyse anzeigen</span><span class="when-open">Analyse schließen</span></span><span class="details-symbol" aria-hidden="true">+</span></summary>
+              <div class="analysis-content">
+                <div class="prediction"><div><span class="eyebrow">Modell-Tipp · {{m.score}}</span><h3>{{m.prediction}}</h3></div><span class="confidence">{{{'High':'Hoch', 'Medium':'Mittel', 'Low':'Niedrig'}.get(m.confidence, m.confidence|default('–'))}}<small>Modellvertrauen</small></span></div>
+                {% if view!='predictions' %}
+                <div class="odds"><div class="odd"><span>1 · Heimsieg</span><b>{{m.home}}%</b></div><div class="odd"><span>X · Remis</span><b>{{m.draw}}%</b></div><div class="odd"><span>2 · Auswärtssieg</span><b>{{m.away}}%</b></div></div>
+                <div class="probability-strip" aria-hidden="true"><span style="flex:{{m.home}}"></span><span style="flex:{{m.draw}}"></span><span style="flex:{{m.away}}"></span></div>
+                {% endif %}
+                <div class="detail-grid"><div class="detail-stat"><span>Expected Goals</span><b>{{m.home_xg}} <i>:</i> {{m.away_xg}}</b><small>Heim / Auswärts</small></div><div class="detail-stat"><span>Formpunkte</span><b>{{m.home_form}} <i>:</i> {{m.away_form}}</b><small>Aus den letzten 5 Spielen</small></div></div>
+                {% if m.scorers %}<div class="scorers"><div class="section-label"><h4>TORSCHÜTZEN IM FOKUS</h4><span>Aktuelle Saison</span></div><div class="scorer-list">{% for p in m.scorers %}<div class="scorer"><div class="scorer-top"><span class="scorer-number">{{'%02d'|format(loop.index)}}</span><b>{{p.probability}}<small>%</small></b></div><strong class="scorer-name">{{p.name}}</strong><div class="scorer-meta"><span>{{p.goals}} Tore</span><span>{{p.appearances}} Spiele</span></div></div>{% endfor %}</div></div>{% endif %}
+                <p class="explanation">Die Analyse kombiniert Elo-Stärke, letzte Ergebnisse, Tordifferenz und Heimvorteil mit einer Poisson-Torverteilung. Torschützenprognosen berücksichtigen die aktuelle Torquote und die erwarteten Teamtore.</p>
+              </div>
+            </details>
+            {% endif %}
+          </article>
+        {% endfor %}
+        </div>
+        {% else %}<div class="empty-state"><span class="empty-number" aria-hidden="true">– : –</span><span class="eyebrow">ZWISCHEN ZWEI SPIELTAGEN</span><h3>Der nächste Anpfiff kommt.</h3><p>Für {{competition_name}} sind derzeit keine kommenden Begegnungen verfügbar. Schau später vorbei oder wähle einen anderen Wettbewerb.</p><a class="text-link" href="{{url_for('index', view=view, competition='BL1' if competition!='BL1' else 'PL')}}">{{'Bundesliga' if competition!='BL1' else 'Premier League'}} ansehen <span aria-hidden="true">↗</span></a></div>{% endif %}
+        <p class="data-note"><span class="square" aria-hidden="true"></span> Daten: football-data.org <span class="note-divider">/</span> Prognosen sind Wahrscheinlichkeiten, keine Ergebnisgarantie.</p>
+      </section>
+    </div>
+  {% endif %}
+  </main>
+  <footer class="site-footer page-width"><a class="footer-brand" href="{{url_for('index')}}">MATCHDAY.</a><span>MIT GEFÜHL FÜR DAS SPIEL. MIT BLICK AUF DIE ZAHLEN.</span><a href="#content">Zurück nach oben ↑</a></footer>
+</body>
+</html>
+
+

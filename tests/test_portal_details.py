@@ -17,7 +17,7 @@ class DetailPortalTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"Genaue Analyse anzeigen", response.data)
         self.assertIn(b"Expected Goals", response.data)
-        self.assertIn(b"toggleMatch", response.data)
+        self.assertIn(b"data-match-details", response.data)
 
 
 if __name__ == "__main__":

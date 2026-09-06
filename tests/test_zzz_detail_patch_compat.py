@@ -1,19 +1,15 @@
-"""Ensure mocked data sources remain effective for the isolated enhanced portal."""
-import portal
+"""The enhanced entrypoint respects a mocked data source without template patching."""
+import unittest
+from unittest.mock import patch
+
 import portal_details
-import tests.test_zz_portal_isolation as isolation
+from tests.test_portal_details import MATCH
 
 
-_detail_view = isolation._detail_view
-
-
-def _mock_compatible_detail_view():
-    previous_page = portal.PAGE
-    portal.PAGE = isolation._detailed_page
-    try:
-        return _detail_view()
-    finally:
-        portal.PAGE = previous_page
-
-
-portal_details.app.view_functions["index"] = _mock_compatible_detail_view
+class DetailSourceCompatibilityTests(unittest.TestCase):
+    @patch("portal_details.portal._fetch", return_value=[MATCH])
+    def test_enhanced_app_uses_selected_competition(self, fetch):
+        response = portal_details.app.test_client().get("/?view=matches&competition=BL1")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Expected Goals", response.data)
+        fetch.assert_called_once_with("BL1")

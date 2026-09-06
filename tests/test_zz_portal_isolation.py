@@ -1,25 +1,17 @@
-"""Keep the base and enhanced portal templates isolated during unittest discovery."""
-import importlib
+"""Base and detailed apps share markup without changing each other's view options."""
+import unittest
+from unittest.mock import patch
 
 import portal
-import portal_details
-import portal_players
+from tests.test_portal import MATCH
 
 
-_detailed_page = portal.PAGE
-_detail_view = portal_details.app.view_functions["index"]
-importlib.reload(portal)
-_base_page = portal.PAGE
-
-
-def _isolated_detail_view():
-    previous_page, previous_fetch = portal.PAGE, portal._fetch
-    portal.PAGE = _detailed_page
-    portal._fetch = portal_players._fetch_with_players
-    try:
-        return _detail_view()
-    finally:
-        portal.PAGE, portal._fetch = previous_page, previous_fetch
-
-
-portal_details.app.view_functions["index"] = _isolated_detail_view
+class PortalIsolationTests(unittest.TestCase):
+    @patch("portal._fetch", return_value=[MATCH])
+    def test_details_option_is_per_app(self, _fetch):
+        base = portal.create_app().test_client()
+        enhanced = portal.create_app(details_enabled=True).test_client()
+        original_page = portal.PAGE
+        self.assertIn(b"data-match-details", enhanced.get("/?view=matches").data)
+        self.assertNotIn(b"data-match-details", base.get("/?view=matches").data)
+        self.assertEqual(portal.PAGE, original_page)
