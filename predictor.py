@@ -78,4 +78,4 @@ def predict_match(team_a: str, team_b: str) -> str:
     return (
         f"Vorhersage: {result_text} ({best_probability:.1f}% Wahrscheinlichkeit) | "
         f"Schlüsselspieler: {key_player}"
-    )
+    )lo
