@@ -2,6 +2,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from math import exp, factorial
+from typing import TypedDict
+
+
+class Prediction(TypedDict):
+    home: float
+    draw: float
+    away: float
+    prediction: str
+    score: str
+    home_xg: float
+    away_xg: float
+    confidence: str
+    must_decide: bool
+    home_advance: float
+    away_advance: float
 
 
 @dataclass(frozen=True)
@@ -58,7 +73,7 @@ def predict(
     away: Team,
     neutral: bool = False,
     must_decide: bool = False,
-) -> dict[str, object]:
+) -> Prediction:
     difference = home.rating + (0 if neutral else 65) - away.rating
     home_xg = max(.35, min(3.4, 1.34 * 10 ** (difference / 800)))
     away_xg = max(.30, min(3.1, 1.12 * 10 ** (-difference / 800)))

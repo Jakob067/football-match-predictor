@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import time
 from collections import defaultdict
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -155,7 +156,7 @@ def _history_stats(history: list[dict[str, int]]) -> dict[str, float]:
 
 def _h2h_home_winrate(home_team: str, away_team: str, h2h_history: dict[tuple[str, str], list[str]]) -> float:
     # Heimteam-Siegquote in den letzten 10 direkten Duellen.
-    key = tuple(sorted((home_team, away_team)))
+    key = (min(home_team, away_team), max(home_team, away_team))
     recent = h2h_history.get(key, [])[-10:]
     if not recent:
         return 0.5
@@ -170,7 +171,7 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
     h2h_history: dict[tuple[str, str], list[str]] = defaultdict(list)
     rows: list[dict[str, object]] = []
 
-    for match in df_sorted.itertuples(index=False):
+    for match in cast(Any, df_sorted.itertuples(index=False)):
         home_team = str(match.home_team)
         away_team = str(match.away_team)
         home_goals = int(match.home_goals)
@@ -205,7 +206,7 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
             {"goals_for": away_goals, "goals_against": home_goals, "points": away_points}
         )
 
-        key = tuple(sorted((home_team, away_team)))
+        key = (min(home_team, away_team), max(home_team, away_team))
         if home_goals > away_goals:
             winner = home_team
         elif away_goals > home_goals:
@@ -390,7 +391,7 @@ def predict_match(home_team: str, away_team: str, df: pd.DataFrame, model: Rando
     draw_pct = prob_map.get(1, 0.0) * 100
     away_pct = prob_map.get(0, 0.0) * 100
 
-    predicted_label = max(prob_map, key=prob_map.get)
+    predicted_label = max(prob_map, key=prob_map.__getitem__)
     pred_text = _prediction_text(predicted_label, home_team, away_team)
 
     print(f"\n⚽ {home_team} vs {away_team}")

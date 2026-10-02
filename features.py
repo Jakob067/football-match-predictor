@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import Any, cast
 
 import pandas as pd
-
 
 RESULT_TO_CLASS = {"team_a_win": 0, "draw": 1, "team_b_win": 2}
 CLASS_TO_TEXT_DE = {
@@ -75,7 +75,7 @@ def _team_stats(history: list[dict[str, int]]) -> dict[str, float]:
 
 
 def _h2h_win_rate(team_a: str, team_b: str, h2h_history: dict[tuple[str, str], list[str]], last_n: int = 10) -> float:
-    key = tuple(sorted((team_a, team_b)))
+    key = (min(team_a, team_b), max(team_a, team_b))
     recent_results = h2h_history.get(key, [])[-last_n:]
     if not recent_results:
         # Neutralwert, falls es noch kein direktes Duell gab.
@@ -120,7 +120,7 @@ def _team_metric_lookup(
             "shots": float(row.shots),
             "unavailable_players": float(row.unavailable_players),
         }
-        for row in grouped_df.itertuples(index=False)
+        for row in cast(Any, grouped_df.itertuples(index=False))
     }
     return lookup, defaults
 
@@ -143,9 +143,9 @@ def build_feature_dataset(
 
     team_history: dict[str, list[dict[str, int]]] = defaultdict(list)
     h2h_history: dict[tuple[str, str], list[str]] = defaultdict(list)
-    rows: list[dict[str, float | int | str]] = []
+    rows: list[dict[str, Any]] = []
 
-    for row in sorted_df.itertuples(index=False):
+    for row in cast(Any, sorted_df.itertuples(index=False)):
         home_team = str(row.home_team)
         away_team = str(row.away_team)
         home_goals = int(row.home_goals)
@@ -222,7 +222,7 @@ def build_feature_dataset(
             {"goals_for": away_goals, "goals_against": home_goals, "points": away_points}
         )
 
-        h2h_key = tuple(sorted((home_team, away_team)))
+        h2h_key = (min(home_team, away_team), max(home_team, away_team))
         if home_goals > away_goals:
             winner = home_team
         elif away_goals > home_goals:
@@ -242,7 +242,7 @@ def _team_history_from_matches(team: str, matches_df: pd.DataFrame) -> list[dict
     ].sort_values("date")
 
     history: list[dict[str, int]] = []
-    for row in team_matches.itertuples(index=False):
+    for row in cast(Any, team_matches.itertuples(index=False)):
         if row.home_team == team:
             goals_for = int(row.home_goals)
             goals_against = int(row.away_goals)
@@ -266,7 +266,7 @@ def _h2h_history(team_a: str, team_b: str, matches_df: pd.DataFrame) -> list[str
     ].sort_values("date")
 
     outcomes: list[str] = []
-    for row in h2h_matches.itertuples(index=False):
+    for row in cast(Any, h2h_matches.itertuples(index=False)):
         if row.home_goals == row.away_goals:
             outcomes.append("draw")
         elif (row.home_goals > row.away_goals and row.home_team == team_a) or (

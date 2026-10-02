@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from importlib import import_module
 from typing import Any
 
 import pandas as pd
@@ -30,7 +31,7 @@ def _build_classifier(model_type: str, random_state: int):
         )
     if model_type == "xgboost":
         try:
-            from xgboost import XGBClassifier
+            XGBClassifier = import_module("xgboost").XGBClassifier
         except ImportError as exc:
             raise ImportError(
                 "Für model_type='xgboost' muss das Paket 'xgboost' installiert sein."
@@ -91,7 +92,3 @@ def train_model(
         "confusion_matrix": conf_matrix,
         "model_type": model_type,
     }
-
-
-def train_random_forest(feature_df: pd.DataFrame, random_state: int = 42) -> dict[str, Any]:
-    return train_model(feature_df=feature_df, model_type="random_forest", random_state=random_state)

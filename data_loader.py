@@ -5,7 +5,6 @@ from typing import Any
 import pandas as pd
 import requests
 
-
 COLUMN_CANDIDATES: dict[str, list[str]] = {
     "date": ["Date", "date", "utcDate", "match_date"],
     "home_team": ["HomeTeam", "home_team", "homeTeam", "home"],

@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 import portal_details
 
-
 MATCH = {"day":"Sa, 12.07.","kickoff":"20:00","home_name":"Team A","away_name":"Team B",
     "home_crest":None,"away_crest":None,"prediction":"Team A win","score":"2–1",
     "home":52.0,"draw":25.0,"away":23.0,"home_xg":1.7,"away_xg":1.0,

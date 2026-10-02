@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+
 from flask import Flask, render_template_string, request
+
 from prediction_engine import COMPETITIONS, competition_choices, predict, teams_for
 
 PAGE = r'''<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Matchday AI</title><style>

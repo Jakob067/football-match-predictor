@@ -24,7 +24,7 @@ def plot_feature_importance(
             n_repeats=10,
             random_state=42,
         )
-        values = importance_result.importances_mean
+        values = importance_result["importances_mean"]
     else:
         raise ValueError(
             "Feature-Importances können für dieses Modell nur mit X_reference und y_reference berechnet werden."

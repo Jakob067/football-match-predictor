@@ -1,6 +1,6 @@
 import unittest
-from scorer_service import add_scorer_predictions
 
+from scorer_service import add_scorer_predictions
 
 SCORERS = [
     {"player":{"name":"Alex Striker"},"team":{"name":"Team A"},"goals":8,"playedMatches":10},

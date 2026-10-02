@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import os
 from functools import lru_cache
+from typing import cast
 
 import pandas as pd
 from flask import Flask, render_template_string, request
@@ -15,7 +16,6 @@ from data_loader import (
 )
 from features import build_feature_dataset, build_prediction_features
 from modeling import train_model
-
 
 PAGE_TEMPLATE = """
 <!doctype html>
@@ -381,7 +381,7 @@ def _prediction_from_model(
     draw_pct = round(probability_by_class.get(1, 0.0), 1)
     away_win_pct = round(probability_by_class.get(2, 0.0), 1)
 
-    prediction_class = max(probability_by_class, key=probability_by_class.get)
+    prediction_class = max(probability_by_class, key=probability_by_class.__getitem__)
     if prediction_class == 0:
         prediction = f"{home_team} gewinnt"
     elif prediction_class == 1:
@@ -436,9 +436,10 @@ def create_app(
         selected_match_id = request.form.get("match_id", "").strip()
         selected_ids = set(request.form.getlist("match_ids"))
         if not selected_match_id and selected_ids:
-            selected_match_id = sorted(selected_ids)[0]
+            selected_match_id = min(selected_ids)
         predictions: list[dict[str, str]] = []
         error_message: str | None = None
+        upcoming_matches = pd.DataFrame()
 
         try:
             season = _parse_season(season_text)
@@ -478,7 +479,7 @@ def create_app(
                     season=season,
                     days_ahead=days_ahead,
                 )
-                fixtures = upcoming_matches.to_dict(orient="records")
+                fixtures = cast(list[dict[str, object]], upcoming_matches.to_dict(orient="records"))
             except RequestException as exc:
                 error_message = f"API-Fehler beim Laden der Fixtures: {exc}"
 

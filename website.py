@@ -1,8 +1,16 @@
 from __future__ import annotations
 
 import argparse
+
 from flask import Flask, render_template_string, request
-from prediction_engine import COMPETITIONS, Team, competition_choices, predict, teams_for
+
+from prediction_engine import (
+    COMPETITIONS,
+    Team,
+    competition_choices,
+    predict,
+    teams_for,
+)
 
 PAGE = r'''<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#07120e"><title>Matchday — Fußballprognosen</title><style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');

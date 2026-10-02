@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+
 import requests
 from flask import Flask, render_template_string, request
 

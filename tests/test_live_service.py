@@ -4,7 +4,6 @@ from unittest.mock import patch
 from live_service import build_predictions, calculate_ratings
 from live_website import create_app
 
-
 FINISHED = [{"utcDate":"2026-07-01T18:00:00Z", "homeTeam":{"id":1,"name":"Argentina"},
     "awayTeam":{"id":2,"name":"Brazil"}, "score":{"fullTime":{"home":2,"away":0}}}]
 SCHEDULED = [{"id":7,"utcDate":"2099-08-01T18:00:00Z",
