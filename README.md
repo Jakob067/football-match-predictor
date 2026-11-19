@@ -93,7 +93,9 @@ Für das Live-Portal trägst du den Token lokal in `.env` ein (die Datei ist von
 FOOTBALL_DATA_API_TOKEN=dein_token_von_football-data.org
 ```
 
-Eine sichere Vorlage liegt in `.env.example`. Mit `--history-seasons` lassen sich mehrere Saisons für ein robusteres Training kombinieren.
+Starte das Live-Portal mit `python3 start.py` und öffne `http://127.0.0.1:8000`.
+
+Mit `--history-seasons` lassen sich beim CLI-Aufruf mehrere Saisons für ein robusteres Training kombinieren.
 
 ---
 
